@@ -1,0 +1,11 @@
+# Fichiers de données
+data/
+documents/
+
+# Fichiers de MLflow
+mlruns/
+mlruns.db
+
+# Fichiers d'analyse SHAP
+*.png
+*.html
