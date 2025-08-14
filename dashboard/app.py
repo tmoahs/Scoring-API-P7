@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 import json
 import shap
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Configuration de la page
@@ -21,44 +22,39 @@ API_URL_SHAP = "https://scoring-api-thomas.onrender.com/shap_explanation"
 # --- Fonctions Utilitaires ---
 def get_shap_plot(client_id):
     """
-    Appelle l'API pour récupérer les données SHAP et génère le graphique.
+    Appelle l'API pour récupérer les données SHAP et génère un graphique waterfall.
     """
     try:
-        # Appel à l'endpoint SHAP
         response = requests.get(f"{API_URL_SHAP}/{client_id}", timeout=30)
         response.raise_for_status()
         shap_data = response.json()
 
         # Recréer l'objet Explanation de SHAP
         shap_explanation = shap.Explanation(
-            values=shap_data["shap_values"],
+            values=np.array(shap_data["shap_values"]),
             base_values=shap_data["base_value"],
-            data=shap_data["feature_values"],
+            data=np.array(shap_data["feature_values"]),
             feature_names=shap_data["feature_names"]
         )
 
-        # Créer le graphique force_plot
-        st.subheader("🔎 Analyse de la Décision (Interprétabilité)")
+        st.subheader("🔎 Analyse détaillée de la Décision")
         st.markdown(
             """
-            Le graphique ci-dessous montre les facteurs qui ont le plus influencé la décision.
-            - Les **facteurs en rouge** (valeurs positives) augmentent le risque de défaut (poussent vers "Refusé").
-            - Les **facteurs en bleu** (valeurs négatives) diminuent le risque (poussent vers "Accepté").
+            Le graphique ci-dessous (waterfall plot) montre comment chaque caractéristique
+            du client a contribué au score final. On part du score moyen (en bas) et chaque 
+            facteur (en rouge ou en bleu) fait évoluer le score jusqu'au résultat final (en haut).
             """
         )
 
-        # Afficher le graphique dans Streamlit
-        fig, ax = plt.subplots()
-        shap.force_plot(
-            shap_explanation.base_values,
-            shap_explanation.values,
-            features=shap_explanation.data,
-            feature_names=shap_explanation.feature_names,
-            matplotlib=True,
-            show=False  # Important pour l'intégration dans Streamlit
-        )
-        st.pyplot(fig, bbox_inches='tight')
-        plt.close(fig)  # Fermer la figure pour libérer la mémoire
+        # --- C'est ici qu'on utilise la nouvelle méthode ---
+        # On crée le graphique waterfall
+
+        shap.plots.waterfall(shap_explanation, max_display=15, show=False)
+
+        # On récupère la figure matplotlib actuelle et on l'affiche dans Streamlit
+        fig = plt.gcf()
+        st.pyplot(fig)
+        plt.close(fig)  # Important pour libérer la mémoire
 
     except requests.exceptions.RequestException as e:
         st.warning(f"Impossible de générer l'explication SHAP : {e}")

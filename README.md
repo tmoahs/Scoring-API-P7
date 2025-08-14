@@ -1,17 +1,22 @@
-# API de Scoring de Crédit
+# API et Dashboard de Scoring de Crédit
 
-Ce projet a pour but de développer et de déployer un modèle de scoring de crédit sous la forme d'une API. L'API utilise un modèle LightGBM pour prédire la probabilité de défaut de paiement d'un client en fonction de son historique et des informations de sa demande de prêt.
+Ce projet a pour but de développer et de déployer un modèle de scoring de crédit sous la forme d'une API et d'un dashboard interactif.
+- L'**API**, construite avec FastAPI et conteneurisée avec Docker, prédit la probabilité de défaut de paiement d'un client.
+- Le **Dashboard**, construit avec Streamlit, permet aux utilisateurs d'interroger l'API et de visualiser les raisons d'une décision grâce à l'interprétabilité du modèle (SHAP).
 
 Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
+
+**Lien vers l'API déployée :** `[Mets ici l'URL de ton API sur Render]`
+**Lien vers le Dashboard (si déployé) :** `[Lien vers le dashboard]`
 
 ---
 
 ## 🚀 Fonctionnalités
 
-* **Prédiction de score** : Prédit la probabilité de défaut pour un client donné.
-* **Décision binaire** : Fournit une décision simple (prêt accepté/refusé) basée sur un seuil.
-* **Dockerisée** : L'application est entièrement conteneurisée avec Docker pour un déploiement facile et reproductible.
-* **Documentation automatique** : Une documentation interactive de l'API est disponible via l'interface Swagger UI.
+* **API de Scoring :** Endpoint de prédiction de score et de décision (prêt accepté/refusé).
+* **API d'Interprétabilité :** Endpoint qui fournit les explications SHAP pour une décision donnée.
+* **Dashboard Interactif :** Interface simple pour tester l'API et visualiser les scores et les explications SHAP.
+* **Déploiement Conteneurisé :** L'API est entièrement conteneurisée avec Docker pour un déploiement facile et reproductible sur le cloud.
 
 ---
 
@@ -19,18 +24,17 @@ Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 ```
 .
 ├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── models.py
-│   └── preprocessing.py
+│   └── ... (Code de l'API FastAPI)
+├── dashboard/
+│   └── app.py           # Code du Dashboard Streamlit
 ├── data/
-│   └── final_dataset.parquet
+│   └── feature_store.db # Base de données SQLite de production
 ├── model/
-│   └── model.pkl
+│   └── model.pkl        # Modèle LightGBM final
 ├── notebooks/
-│   ├── EDA + FE.ipynb
-│   ├── MODELISATION.ipynb
-│   └── Analyse Modèle.ipynb
+│   └── ... (Notebooks d'analyse et de modélisation)
+├── scripts/
+│   └── convert_to_sqlite.py # Script de préparation des données
 ├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
@@ -38,6 +42,7 @@ Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 ├── requirements.txt
 └── requirements-dev.txt
 ```
+
 
 ---
 
@@ -47,7 +52,7 @@ Pour travailler sur le projet, suivez ces étapes :
 
 1.  **Clonez le dépôt :**
     ```bash
-    git clone [https://github.com/tmoahs/Projet-7](https://github.com/tmoahs/Projet-7)
+    git clone [https://github.com/TegroTON/TON-DEX-TegroFinance-Web-Frontend](https://github.com/TegroTON/TON-DEX-TegroFinance-Web-Frontend)
     cd [nom-du-dossier]
     ```
 
@@ -64,63 +69,53 @@ Pour travailler sur le projet, suivez ces étapes :
 
 ---
 
-## ▶️ Utilisation de l'API
+## ▶️ Utilisation
 
-Il y a deux manières de lancer l'API.
+### Lancement de l'API avec Docker (Recommandé)
 
-### 1. Lancement Local (sans Docker)
-
-Cette méthode est utile pour le développement et le débogage rapide.
-
-```bash
-uvicorn app.main:app --reload
-```
-
-### 2. Lancement avec Docker (Recommandé)
 C'est la méthode de production. Assurez-vous d'avoir Docker Desktop d'installé et lancé.
 
-**Construisez l'image Docker :**
+1.  **Construisez l'image Docker :**
+    ```bash
+    docker build -t scoring-api .
+    ```
 
-```bash 
-docker build -t scoring-api .
-```
+2.  **Lancez le conteneur :**
+    ```bash
+    docker run -p 8000:8000 scoring-api
+    ```
+L'API sera accessible à l'adresse `http://localhost:8000`.
 
-**Lancez le conteneur :**
+### Lancement du Dashboard
 
-```bash
-docker run -p 8000:8000 scoring-api
-```
+Le dashboard se connecte à l'API (qu'elle soit lancée en local ou sur le cloud).
 
-L'API sera accessible à l'adresse http://localhost:8000.
+1.  Assurez-vous que votre environnement virtuel est activé.
+2.  Lancez l'application Streamlit :
+    ```bash
+    streamlit run dashboard/app.py
+    ```
+Le dashboard sera accessible à l'adresse `http://localhost:8501`.
+
+---
 
 ## 📖 Endpoints de l'API
 
-Une fois l'API lancée, une documentation interactive complète est disponible à l'adresse http://localhost:8000/docs.
+Une documentation interactive complète est disponible à l'adresse de l'API, sur le chemin `/docs` (par exemple, `http://localhost:8000/docs`).
 
-`GET /`
-**Description :** Endpoint racine pour vérifier que l'API est en ligne.
+### `POST /predict`
+* **Description** : Prédit le risque de défaut pour un client.
+* **Réponse en cas de succès** :
+    ```json
+    {
+      "prediction": 0,
+      "score": 0.0336
+    }
+    ```
 
-**Réponse :**
+### `GET /shap_explanation/{client_id}`
+* **Description** : Fournit les données d'interprétabilité SHAP pour un client donné.
+* **Réponse en cas de succès** : Un objet JSON contenant les valeurs de base, les valeurs SHAP et les noms des features.
 
-```bash
-{
-  "message": "API de scoring en ligne et fonctionnelle."
-}
-```
-
-`POST /predict`
-**Description :** Prédit le risque de défaut pour un client.
-
-**Corps de la requête :** Un objet JSON avec les informations du client (voir l'exemple dans la documentation /docs).
-
-**Réponse en cas de succès :**
-```bash
-{
-  "prediction": 0,
-  "score": 0.0336
-}
-```
-    
-`prediction` : `0` pour un prêt accepté, `1` pour un prêt refusé.
-
-`score` : La probabilité de défaut estimée par le modèle.
+---
+*Projet réalisé par Thomas*
