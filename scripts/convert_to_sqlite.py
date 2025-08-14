@@ -6,8 +6,8 @@ import os
 print("Début de la conversion Parquet vers SQLite...")
 
 # Définir les chemins
-parquet_path = 'data/dataset_optimized.parquet' # Le nom de ton fichier optimisé
-db_path = 'data/feature_store.db'
+parquet_path = '../data/dataset_optimized.parquet'  # Le nom de ton fichier optimisé
+db_path = '../data/feature_store.db'
 table_name = 'features'
 
 # 1. Charger le DataFrame depuis le fichier Parquet

@@ -6,7 +6,7 @@ print("Début du script d'optimisation de mémoire...")
 
 # 1. Charger le jeu de données complet
 print("Chargement du dataset complet...")
-df = pd.read_parquet('data/final_dataset.parquet')
+df = pd.read_parquet('../data/final_dataset.parquet')
 mem_usage_before = df.memory_usage(deep=True).sum() / 1024**2
 print(f"Usage mémoire avant optimisation: {mem_usage_before:.2f} MB")
 

@@ -104,7 +104,7 @@ Une fois l'API lancée, une documentation interactive complète est disponible �
 
 ```bash
 {
-  "message": "Bienvenue sur l'API de scoring ! L'API est en marche."
+  "message": "API de scoring en ligne et fonctionnelle."
 }
 ```
 
