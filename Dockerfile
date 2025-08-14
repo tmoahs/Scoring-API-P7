@@ -1,43 +1,31 @@
-# =================================================================
-# RECETTE DE CONSTRUCTION DE NOTRE CONTENEUR D'API
-# =================================================================
-
-# --- Étape 1: Le Point de Départ ---
-# On choisit notre fondation. Ici, une image officielle et légère
-# qui contient déjà Python dans sa version 3.11.
+# Étape 1 : Choisir une image de base
 FROM python:3.11-slim
 
-# --- Étape 2: L'Espace de Travail ---
-# On crée un dossier nommé "/app" à l'intérieur du conteneur.
-# Ce sera le dossier principal de notre application dans la "boîte".
+# Étape 2 : Définir le répertoire de travail
 WORKDIR /app
 
-# On met à jour la liste des paquets et on installe la librairie manquante pour LightGBM
-RUN apt-get update && apt-get install -y libgomp1
+# Étape 3 : Installer les dépendances SYSTÈME
+# On installe curl pour pouvoir télécharger des fichiers
+RUN apt-get update && apt-get install -y libgomp1 curl
 
-# --- Étape 3: Installation des Dépendances ---
-# On copie d'abord SEULEMENT le fichier requirements.txt.
-# Pourquoi ? Docker a un système de cache intelligent. Si on ne change
-# que notre code (app/) sans changer les librairies, Docker n'aura
-# pas besoin de réinstaller toutes les dépendances, ce qui rendra
-# les constructions futures beaucoup plus rapides.
+# Étape 4 : Copier et installer les dépendances PYTHON
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- Étape 4: Ajout de Notre Application ---
-# Maintenant que les fondations sont posées, on copie notre code
-# et nos données dans le conteneur.
+# --- Étape 5 (MODIFIÉE) : Créer les dossiers et télécharger les données ---
+# On crée les dossiers dont notre application a besoin
+RUN mkdir -p /app/data /app/model
+
+# On télécharge notre dataset depuis son URL publique
+# REMPLACE LE LIEN CI-DESSOUS PAR LE TIEN !
+RUN curl -L -o /app/data/final_dataset.parquet "https://URL_DE_TELECHARGEMENT_DIRECT_DE_TON_FICHIER"
+
+# On copie notre code et notre modèle
 COPY ./app /app/app
-COPY ./data /app/data
 COPY ./model /app/model
 
-# --- Étape 5: Ouvrir la Porte ---
-# On indique que notre application, à l'intérieur du conteneur,
-# va utiliser le port 8000 pour communiquer avec l'extérieur.
+# Étape 6 : Exposer le port
 EXPOSE 8000
 
-# --- Étape 6: La Commande de Lancement ---
-# C'est LA commande qui sera exécutée automatiquement quand on démarrera le conteneur.
-# Elle lance le serveur Uvicorn, le rend accessible depuis l'extérieur du conteneur (--host 0.0.0.0)
-# et lui dit d'utiliser le port 8000.
+# Étape 7 : Définir la commande de démarrage
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
