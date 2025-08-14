@@ -18,7 +18,7 @@ RUN mkdir -p /app/data /app/model
 
 # On télécharge notre dataset depuis son URL publique
 # REMPLACE LE LIEN CI-DESSOUS PAR LE TIEN !
-RUN curl -L -o /app/data/final_dataset.parquet "https://URL_DE_TELECHARGEMENT_DIRECT_DE_TON_FICHIER"
+RUN curl -L -o /app/data/final_dataset.parquet "https://drive.google.com/file/d/1uCHR3hkHVJ2_ChdVIKvklhsp9KWsRBKH/view?usp=drive_link"
 
 # On copie notre code et notre modèle
 COPY ./app /app/app
