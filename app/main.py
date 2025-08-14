@@ -1,10 +1,11 @@
 # app/main.py (Version finale avec SHAP)
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import pandas as pd
 import joblib
 import os
-import shap  # <-- 1. Importer SHAP
+import shap
+import threading
 
 from .preprocessing import prepare_data_for_prediction
 from .models import NewLoanRequest, PredictionResponse
@@ -32,6 +33,12 @@ except Exception as e:
 # On définit le chemin vers le fichier de base de données
 DATA_PATH = "data/feature_store.db"
 
+# On définit le chemin vers le fichier de log des prédictions
+PREDICTIONS_LOG_PATH = "data/predictions_log.csv"
+
+# Un verrou pour éviter les problèmes d'écriture simultanée sur le fichier
+file_lock = threading.Lock()
+
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
@@ -55,6 +62,9 @@ def predict(request: NewLoanRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    # On fait une copie des données avant la prédiction pour les sauvegarder
+    data_to_log = client_data_df.copy()
+
     client_data_df.fillna(0, inplace=True)
     model_features = model.feature_name_
     client_data_df = client_data_df.reindex(columns=model_features, fill_value=0)
@@ -62,11 +72,23 @@ def predict(request: NewLoanRequest):
     score = model.predict_proba(client_data_df)[:, 1][0]
     prediction = 1 if score > 0.5 else 0
 
+    # On ajoute le score et la prédiction au DataFrame à sauvegarder
+    data_to_log['SCORE'] = score
+    data_to_log['PREDICTION'] = prediction
+
+    # On sauvegarde dans le fichier CSV en utilisant un verrou
+    with file_lock:
+        data_to_log.to_csv(
+            PREDICTIONS_LOG_PATH,
+            mode='a',  # 'a' pour "append" (ajouter à la fin)
+            header=not os.path.exists(PREDICTIONS_LOG_PATH),  # N'écrit l'en-tête que si le fichier n'existe pas
+            index=False
+        )
+
     return {"prediction": prediction, "score": float(score)}
 
 
 # --- 3. NOUVEL ENDPOINT POUR LES EXPLICATIONS SHAP ---
-@app.get("/shap_explanation/{client_id}")
 @app.get("/shap_explanation/{client_id}")
 def get_shap_explanation(client_id: int):
     """
