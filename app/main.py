@@ -67,18 +67,20 @@ def predict(request: NewLoanRequest):
 
 # --- 3. NOUVEL ENDPOINT POUR LES EXPLICATIONS SHAP ---
 @app.get("/shap_explanation/{client_id}")
+@app.get("/shap_explanation/{client_id}")
 def get_shap_explanation(client_id: int):
     """
     Fournit les données nécessaires pour une explication SHAP pour un client donné.
+    Cette version est robuste aux changements de format de la librairie SHAP.
     """
     if explainer is None or model is None:
         raise HTTPException(status_code=503, detail="Explainer SHAP non disponible.")
 
     try:
-        # On récupère les données du client (sans les infos de la nouvelle demande)
+        # On récupère les données du client
         client_data_df = prepare_data_for_prediction(
             client_id=client_id,
-            new_loan_data={"SK_ID_CURR": client_id},  # On passe un dict minimal
+            new_loan_data={"SK_ID_CURR": client_id},
             db_path=DATA_PATH
         )
         client_data_df.fillna(0, inplace=True)
@@ -86,18 +88,34 @@ def get_shap_explanation(client_id: int):
         client_data_df = client_data_df.reindex(columns=model_features, fill_value=0)
 
         # Calculer les valeurs SHAP pour ce client
-        shap_values = explainer.shap_values(client_data_df)
+        shap_values_output = explainer.shap_values(client_data_df)
+
+        # --- Logique robuste pour gérer les différentes versions de SHAP ---
+        # Pour la valeur de base (expected_value)
+        if isinstance(explainer.expected_value, list):
+            base_value = explainer.expected_value[1]  # On prend la valeur pour la classe 1 (défaut)
+        else:
+            base_value = explainer.expected_value
+
+        # Pour les valeurs SHAP
+        if isinstance(shap_values_output, list):
+            shap_values_for_prediction = shap_values_output[1][0]  # On prend les valeurs pour la classe 1
+        else:
+            shap_values_for_prediction = shap_values_output[0]
 
         # Formater la réponse pour qu'elle soit facile à utiliser
         response_data = {
-            "base_value": explainer.expected_value[1],  # Valeur de base pour la classe 1 (défaut)
-            "shap_values": shap_values[1][0].tolist(),  # Valeurs SHAP pour la classe 1
+            "base_value": base_value,
+            "shap_values": shap_values_for_prediction.tolist(),
             "feature_names": client_data_df.columns.tolist(),
             "feature_values": client_data_df.iloc[0].tolist()
         }
         return response_data
 
-    except ValueError as e:  # Le client n'existe pas
+    except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        # Cette ligne aidera à voir l'erreur précise dans les logs de Render si elle persiste
+        import traceback
+        print(f"Erreur détaillée dans get_shap_explanation: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du calcul SHAP : {e}")
