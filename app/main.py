@@ -3,7 +3,6 @@ from fastapi import FastAPI, HTTPException
 import pandas as pd
 import joblib
 import os
-from fastapi.responses import JSONResponse
 
 # On importe les classes et fonctions de nos autres fichiers
 from .preprocessing import prepare_data_for_prediction
@@ -22,13 +21,8 @@ app = FastAPI(
 # Cette partie est exécutée une seule fois, au démarrage de l'API.
 # C'est beaucoup plus efficace que de le charger à chaque requête.
 try:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    MODEL_PATH = os.path.join(BASE_DIR, 'model', 'model.pkl')  # Assure-toi que le nom du fichier est correct
-
-    print(f"INFO: Tentative de chargement du modèle depuis: {MODEL_PATH}")
-    model = joblib.load(MODEL_PATH)
+    model = joblib.load('model/model.pkl')
     print("✅ Modèle chargé avec succès.")
-
 except Exception as e:
     print(f"❌ Erreur lors du chargement du modèle : {e}")
     model = None
@@ -40,20 +34,19 @@ DATA_PATH = "data/dataset_optimized.parquet"
 # Endpoint Racine ("/")
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
-    """
-    Endpoint racine pour les vérifications de santé (health check).
+    """Endpoint racine pour les vérifications de santé (health check).
     Répond explicitement aux requêtes GET et HEAD avec un statut 200 OK.
     """
-    return JSONResponse(content={"message": "API de scoring en ligne et fonctionnelle."})
+    return {"message": "API de scoring en ligne et fonctionnelle."}
 
-# Endpoint de Prédiction ("/predict")
+
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: NewLoanRequest):
     if model is None:
         raise HTTPException(status_code=503, detail="Modèle non disponible.")
 
     try:
-        # On passe maintenant le chemin du fichier de données
+        # On passe le chemin du fichier de données
         client_data_df = prepare_data_for_prediction(
             client_id=request.SK_ID_CURR,
             new_loan_data=request.dict(),
@@ -64,33 +57,12 @@ def predict(request: NewLoanRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # ===================================================================
-    # ÉTAPE DE NETTOYAGE
-    # ===================================================================
-    # Avant de faire la prédiction, on s'assure qu'il n'y a plus de 'None' ou 'NaN'
-    # On les remplace par 0 (ou une autre valeur par défaut comme la médiane si tu préfères)
+    # Logique de nettoyage et prédiction
     client_data_df.fillna(0, inplace=True)
-
-    # On vérifie qu'il n'y a plus de types 'object' qui pourraient poser problème
-    for col in client_data_df.columns:
-        if client_data_df[col].dtype == 'object':
-            client_data_df[col] = client_data_df[col].astype(int) # ou float
-    # ===================================================================
-
-    # Étape B (TRÈS IMPORTANTE) : S'assurer que les colonnes sont dans le bon ordre
-    # Le modèle s'attend à recevoir les colonnes exactement dans le même ordre que pendant l'entraînement.
     model_features = model.feature_name_
     client_data_df = client_data_df.reindex(columns=model_features, fill_value=0)
 
-    # Étape C : Faire la prédiction
-    # .predict_proba renvoie les probabilités pour les classes [0, 1]
-    # On ne garde que la probabilité de la classe 1 (défaut de paiement)
     score = model.predict_proba(client_data_df)[:, 1][0]
-
-    # Étape D : Définir la prédiction binaire (0 ou 1)
-    # Tu peux ajuster ce seuil (0.5) en fonction de l'analyse que tu as faite dans tes notebooks
     prediction = 1 if score > 0.5 else 0
 
-    # Étape E : Renvoyer la réponse finale
-    # FastAPI s'occupe de la convertir au format JSON avec la structure de PredictionResponse
     return {"prediction": prediction, "score": float(score)}
