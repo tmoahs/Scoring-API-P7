@@ -18,7 +18,7 @@ RUN mkdir -p /app/data /app/model
 
 # On télécharge notre dataset depuis son URL publique
 # REMPLACE LE LIEN CI-DESSOUS PAR LE TIEN !
-RUN curl -L -o /app/data/dataset_optimized.parquet "https://github.com/tmoahs/Scoring-API-P7/releases/download/v2-data/dataset_optimized.parquet"
+RUN curl -L -o /app/data/dataset_optimized.parquet "https://github.com/tmoahs/Scoring-API-P7/releases/download/v3-data/feature_store.db"
 
 # On copie notre code et notre modèle
 COPY ./app /app/app

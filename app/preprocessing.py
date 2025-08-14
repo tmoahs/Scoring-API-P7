@@ -1,35 +1,41 @@
-# app/preprocessing.py (version avec lecture à la demande)
+# app/preprocessing.py (Version finale avec base de données SQLite)
 import pandas as pd
-import numpy as np
-import os
+import sqlite3
 
 
-def prepare_data_for_prediction(client_id: int, new_loan_data: dict, data_path: str) -> pd.DataFrame:
+def prepare_data_for_prediction(client_id: int, new_loan_data: dict, db_path: str) -> pd.DataFrame:
     """
-    Prépare la ligne de données finale pour un client donné en la lisant
-    directement depuis le fichier Parquet au moment de la requête.
+    Prépare la ligne de données finale pour un client donné en l'interrogeant
+    directement depuis la base de données SQLite.
     """
+    conn = None  # Initialiser la connexion à None
     try:
-        # 1. Lire UNIQUEMENT la ligne du client demandé depuis le fichier Parquet
-        # La fonction 'filters' de read_parquet est très efficace pour cela.
-        client_features = pd.read_parquet(
-            data_path,
-            filters=[[('SK_ID_CURR', '==', client_id)]]
-        )
+        # 1. Se connecter à la base de données SQLite
+        conn = sqlite3.connect(db_path)
+
+        # 2. Écrire la requête SQL pour récupérer la ligne du client
+        # L'utilisation de '?' est une protection contre les injections SQL.
+        query = f"SELECT * FROM features WHERE SK_ID_CURR = ?"
+
+        # 3. Exécuter la requête avec pandas
+        client_features = pd.read_sql_query(query, conn, params=(client_id,))
+
+    except sqlite3.Error as e:
+        raise RuntimeError(f"Erreur de base de données : {e}")
     except Exception as e:
-        raise RuntimeError(f"Erreur lors de la lecture du fichier Parquet : {e}")
+        raise RuntimeError(f"Erreur inattendue : {e}")
+    finally:
+        # 5. S'assurer que la connexion est toujours fermée, même en cas d'erreur
+        if conn:
+            conn.close()
 
     if client_features.empty:
-        raise ValueError(f"Client avec SK_ID_CURR {client_id} non trouvé dans le fichier de données.")
+        raise ValueError(f"Client avec SK_ID_CURR {client_id} non trouvé dans la base de données.")
 
-    # 2. Mettre à jour avec les données de la nouvelle requête
+    # La suite de la logique ne change pas...
     new_data_df = pd.DataFrame([new_loan_data])
     for col in new_data_df.columns:
         if col in client_features.columns:
-            # .loc est plus sûr pour éviter les avertissements de copie
             client_features.loc[:, col] = new_data_df[col].values
-
-    # 3. Recalculer les features 'temps réel' (si nécessaire)
-    # Tu peux ajouter ici les calculs de ratio comme INCOME_CREDIT_PERC si besoin
 
     return client_features
