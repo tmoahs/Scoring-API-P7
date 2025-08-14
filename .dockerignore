@@ -1,0 +1,20 @@
+# Ignorer les caches Python
+__pycache__/
+*.pyc
+
+# Ignorer l'environnement virtuel local
+.venv
+venv/
+
+# Ignorer les configurations Git et IDE
+.git
+.gitignore
+.idea
+.vscode
+
+# Ignorer les csv et autres documents
+data/*.csv
+notebooks/
+mlruns/
+README.md
+requirements_dev.txt
