@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 import pandas as pd
 import joblib
 import os
+from fastapi.responses import JSONResponse
 
 # On importe les classes et fonctions de nos autres fichiers
 from .preprocessing import prepare_data_for_prediction
@@ -37,12 +38,13 @@ DATA_PATH = "data/dataset_optimized.parquet"
 # --- 3. DÉFINITION DES ENDPOINTS (LES "ROUTES" DE L'API) ---
 
 # Endpoint Racine ("/")
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     """
-    Endpoint simple pour vérifier que l'API est en ligne.
+    Endpoint racine pour les vérifications de santé (health check).
+    Répond explicitement aux requêtes GET et HEAD avec un statut 200 OK.
     """
-    return {"message": "Bienvenue sur l'API de scoring ! L'API est en marche."}
+    return JSONResponse(content={"message": "API de scoring en ligne et fonctionnelle."})
 
 # Endpoint de Prédiction ("/predict")
 @app.post("/predict", response_model=PredictionResponse)
