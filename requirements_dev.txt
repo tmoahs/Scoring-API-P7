@@ -27,6 +27,7 @@ decorator==5.2.1
 defusedxml==0.7.1
 docker==7.1.0
 executing==2.2.0
+evidently==0.7.12
 fastapi==0.116.1
 fastjsonschema==2.21.1
 Flask==3.1.1
