@@ -1,13 +1,10 @@
-# API et Dashboard de Scoring de Crédit
+# API de Scoring de Crédit avec Monitoring MLOps
 
-Ce projet a pour but de développer et de déployer un modèle de scoring de crédit sous la forme d'une API et d'un dashboard interactif.
-- L'**API**, construite avec FastAPI et conteneurisée avec Docker, prédit la probabilité de défaut de paiement d'un client.
-- Le **Dashboard**, construit avec Streamlit, permet aux utilisateurs d'interroger l'API et de visualiser les raisons d'une décision grâce à l'interprétabilité du modèle (SHAP).
+Ce projet a pour but de développer et de déployer un modèle de scoring de crédit sous la forme d'une API conteneurisée, et de mettre en place un système de monitoring pour surveiller la dérive des données en production.
 
 Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 
-**Lien vers l'API déployée :** `[Mets ici l'URL de ton API sur Render]`
-**Lien vers le Dashboard (si déployé) :** `[Lien vers le dashboard]`
+**Lien vers l'API déployée :** `https://scoring-api-thomas.onrender.com`
 
 ---
 
@@ -15,7 +12,7 @@ Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 
 * **API de Scoring :** Endpoint de prédiction de score et de décision (prêt accepté/refusé).
 * **API d'Interprétabilité :** Endpoint qui fournit les explications SHAP pour une décision donnée.
-* **Dashboard Interactif :** Interface simple pour tester l'API et visualiser les scores et les explications SHAP.
+* **Monitoring de Modèle :** Un script utilisant Evidently AI permet de générer un rapport sur la dérive des données entre l'entraînement et la production.
 * **Déploiement Conteneurisé :** L'API est entièrement conteneurisée avec Docker pour un déploiement facile et reproductible sur le cloud.
 
 ---
@@ -25,12 +22,12 @@ Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 .
 ├── app/
 │   └── ... (Code de l'API FastAPI)
-├── dashboard/
-│   └── app.py           # Code du Dashboard Streamlit
 ├── data/
 │   └── feature_store.db # Base de données SQLite de production
 ├── model/
 │   └── model.pkl        # Modèle LightGBM final
+├── monitoring/
+│   └── generate_report.py # Script de monitoring avec Evidently AI
 ├── notebooks/
 │   └── ... (Notebooks d'analyse et de modélisation)
 ├── scripts/
@@ -52,7 +49,7 @@ Pour travailler sur le projet, suivez ces étapes :
 
 1.  **Clonez le dépôt :**
     ```bash
-    git clone [https://github.com/TegroTON/TON-DEX-TegroFinance-Web-Frontend](https://github.com/TegroTON/TON-DEX-TegroFinance-Web-Frontend)
+    git clone [https://github.com/depot](https://github.com/depot)
     cd [nom-du-dossier]
     ```
 
@@ -86,16 +83,17 @@ C'est la méthode de production. Assurez-vous d'avoir Docker Desktop d'installé
     ```
 L'API sera accessible à l'adresse `http://localhost:8000`.
 
-### Lancement du Dashboard
+---
+## 📈 Monitoring
 
-Le dashboard se connecte à l'API (qu'elle soit lancée en local ou sur le cloud).
+Pour générer le rapport de dérive des données, assurez-vous d'avoir d'abord généré des données de production en utilisant l'API, puis d'avoir rapatrié le fichier `predictions_log.csv` dans le dossier `data/`.
 
 1.  Assurez-vous que votre environnement virtuel est activé.
-2.  Lancez l'application Streamlit :
+2.  Lancez le script de monitoring :
     ```bash
-    streamlit run dashboard/app.py
+    python monitoring/generate_report.py
     ```
-Le dashboard sera accessible à l'adresse `http://localhost:8501`.
+3.  Un rapport `data_drift_report.html` sera généré à la racine du projet.
 
 ---
 
@@ -105,17 +103,12 @@ Une documentation interactive complète est disponible à l'adresse de l'API, su
 
 ### `POST /predict`
 * **Description** : Prédit le risque de défaut pour un client.
-* **Réponse en cas de succès** :
-    ```json
-    {
-      "prediction": 0,
-      "score": 0.0336
-    }
-    ```
 
 ### `GET /shap_explanation/{client_id}`
 * **Description** : Fournit les données d'interprétabilité SHAP pour un client donné.
-* **Réponse en cas de succès** : Un objet JSON contenant les valeurs de base, les valeurs SHAP et les noms des features.
+
+### `GET /download_logs`
+* **Description** : Endpoint de maintenance pour télécharger le fichier de log des prédictions.
 
 ---
-*Projet réalisé par Thomas*
+*Projet réalisé par [Votre Nom]*
