@@ -1,6 +1,6 @@
 # app/main.py (Version finale avec SHAP)
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import pandas as pd
 import joblib
 import os
@@ -141,3 +141,18 @@ def get_shap_explanation(client_id: int):
         import traceback
         print(f"Erreur détaillée dans get_shap_explanation: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du calcul SHAP : {e}")
+
+# --- Endpoint de Maintenance pour Télécharger les Logs ---
+@app.get("/download_logs")
+def download_logs():
+    """
+    Permet de télécharger le fichier de log des prédictions.
+    """
+    if os.path.exists(PREDICTIONS_LOG_PATH):
+        return FileResponse(
+            path=PREDICTIONS_LOG_PATH,
+            filename="predictions_log.csv",
+            media_type='text/csv'
+        )
+    else:
+        raise HTTPException(status_code=404, detail="Le fichier de log n'a pas encore été créé.")
