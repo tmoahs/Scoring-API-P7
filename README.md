@@ -111,4 +111,4 @@ Une documentation interactive complète est disponible à l'adresse de l'API, su
 * **Description** : Endpoint de maintenance pour télécharger le fichier de log des prédictions.
 
 ---
-*Projet réalisé par [Votre Nom]*
+*Projet réalisé par Thomas*
