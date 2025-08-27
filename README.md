@@ -1,35 +1,104 @@
-# API de Scoring de Crédit avec Monitoring MLOps
+# Projet de Scoring de Crédit : API, Monitoring & Dashboard Interactif
 
-Ce projet a pour but de développer et de déployer un modèle de scoring de crédit sous la forme d'une API conteneurisée, et de mettre en place un système de monitoring pour surveiller la dérive des données en production.
+Ce projet complet de Data Science vise à développer un modèle de scoring de crédit, à le déployer via une **API RESTful conteneurisée**, à surveiller sa performance en production via un **rapport de monitoring**, et à le rendre accessible aux utilisateurs métier grâce à un **dashboard interactif**.
+
+L'objectif final est de prédire la probabilité de défaut de paiement d'un client et de fournir des outils pour interpréter cette décision de manière transparente.
 
 Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 
-**Lien vers l'API déployée :** `https://scoring-api-thomas.onrender.com`
+---
+
+## 🚀 Composants du Projet & Liens
+
+Ce projet est divisé en deux applications distinctes et un processus de surveillance :
+
+1.  **Le Dashboard Interactif (Frontend)** : Une application Streamlit pour les chargés de clientèle.
+    * **➡️ Lien vers l'application déployée :** `https://scoring-api-p8.streamlit.app/`
+
+2.  **L'API de Scoring (Backend)** : Une API FastAPI qui expose le modèle de prédiction.
+    * **➡️ Lien vers l'API déployée :** `https://scoring-api-thomas.onrender.com`
+
+3.  **Le Monitoring MLOps** : Un rapport généré avec Evidently AI pour surveiller la dérive des données.
 
 ---
 
-## 🚀 Fonctionnalités
+## 📊 1. Dashboard Interactif de Scoring
 
-* **API de Scoring :** Endpoint de prédiction de score et de décision (prêt accepté/refusé).
-* **API d'Interprétabilité :** Endpoint qui fournit les explications SHAP pour une décision donnée.
-* **Monitoring de Modèle :** Un script utilisant Evidently AI permet de générer un rapport sur la dérive des données entre l'entraînement et la production.
-* **Déploiement Conteneurisé :** L'API est entièrement conteneurisée avec Docker pour un déploiement facile et reproductible sur le cloud.
+Le dashboard est l'interface utilisateur principale, conçue pour permettre aux chargés de clientèle d'expliquer les décisions de crédit de manière simple et visuelle.
+
+### Fonctionnalités du Dashboard
+
+* **Score Client** : Visualisation du score de risque via une jauge intuitive et affichage de la décision (prêt accepté/refusé).
+* **Interprétabilité du Modèle** : Affichage des facteurs les plus influents pour la décision d'un client (SHAP local) et comparaison avec l'importance globale des facteurs.
+* **Analyse Comparative** : Graphiques interactifs (distributions et nuages de points) permettant de comparer un client à l'ensemble de la clientèle.
+* **Simulation "What-If"** : Possibilité de modifier les informations d'un client existant pour voir l'impact en temps réel sur son score.
+* **Accessibilité** : Conception des graphiques pensée pour l'accessibilité (palettes de couleurs, marqueurs multiples).
+
+### Lancement Local du Dashboard
+
+1.  Assurez-vous que l'API de scoring (voir ci-dessous) est lancée et accessible.
+2.  Naviguez vers le dossier du dashboard (`cd dashboard/`).
+3.  Installez les dépendances : `pip install -r requirements.txt`.
+4.  Lancez l'application Streamlit :
+    ```bash
+    streamlit run app.py
+    ```
+
+---
+
+## ⚙️ 2. API de Scoring de Crédit
+
+L'API est le cœur technique du projet, responsable du calcul des prédictions et de la fourniture des données d'interprétabilité.
+
+### Fonctionnalités de l'API
+
+* **Prédiction de score** : Prédit la probabilité de défaut pour un client donné.
+* **Explication SHAP** : Fournit les données nécessaires pour générer les graphiques d'interprétabilité.
+* **Déploiement Conteneurisé** : Entièrement conteneurisée avec Docker pour un déploiement facile.
+* **Documentation automatique** : Documentation interactive disponible via Swagger UI au endpoint `/docs`.
+
+### Lancement de l'API avec Docker (Recommandé)
+
+Assurez-vous d'avoir Docker Desktop d'installé et lancé.
+
+1.  **Construisez l'image Docker** (depuis la racine du projet) :
+    ```bash
+    docker build -t scoring-api .
+    ```
+2.  **Lancez le conteneur :**
+    ```bash
+    docker run -p 8000:8000 scoring-api
+    ```
+
+---
+
+## 📈 3. Monitoring
+
+Pour générer le rapport de dérive des données, lancez le script suivant depuis la racine du projet (environnement virtuel activé) :
+```bash
+python monitoring/generate_report.py
+```
 
 ---
 
 ## 📂 Structure du Projet
-```
 .
-├── app/
-│   └── ... (Code de l'API FastAPI)
-├── data/
-│   └── feature_store.db # Base de données SQLite de production
+├── app/ (Code de l'API FastAPI)
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models.py
+│   └── preprocessing.py
 ├── model/
-│   └── model.pkl        # Modèle LightGBM final
+│   └── model.pkl # Modèle final    
+├── dashboard/            # Code source du Dashboard Streamlit
+│   ├── app.py
+│   └── requirements.txt
 ├── monitoring/
 │   └── generate_report.py # Script de monitoring avec Evidently AI
 ├── notebooks/
-│   └── ... (Notebooks d'analyse et de modélisation)
+│   ├── EDA + FE.ipynb
+│   ├── MODELISATION.ipynb
+│   └── Analyse Modèle.ipynb
 ├── scripts/
 │   └── convert_to_sqlite.py # Script de préparation des données
 ├── .dockerignore
@@ -38,77 +107,6 @@ Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 ├── README.md
 ├── requirements.txt
 └── requirements-dev.txt
-```
-
-
----
-
-## ⚙️ Installation (Pour Développement)
-
-Pour travailler sur le projet, suivez ces étapes :
-
-1.  **Clonez le dépôt :**
-    ```bash
-    git clone [https://github.com/depot](https://github.com/depot)
-    cd [nom-du-dossier]
-    ```
-
-2.  **Créez et activez un environnement virtuel :**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Sur Windows: .venv\Scripts\activate
-    ```
-
-3.  **Installez toutes les dépendances de développement :**
-    ```bash
-    pip install -r requirements-dev.txt
-    ```
-
----
-
-## ▶️ Utilisation
-
-### Lancement de l'API avec Docker (Recommandé)
-
-C'est la méthode de production. Assurez-vous d'avoir Docker Desktop d'installé et lancé.
-
-1.  **Construisez l'image Docker :**
-    ```bash
-    docker build -t scoring-api .
-    ```
-
-2.  **Lancez le conteneur :**
-    ```bash
-    docker run -p 8000:8000 scoring-api
-    ```
-L'API sera accessible à l'adresse `http://localhost:8000`.
-
----
-## 📈 Monitoring
-
-Pour générer le rapport de dérive des données, assurez-vous d'avoir d'abord généré des données de production en utilisant l'API, puis d'avoir rapatrié le fichier `predictions_log.csv` dans le dossier `data/`.
-
-1.  Assurez-vous que votre environnement virtuel est activé.
-2.  Lancez le script de monitoring :
-    ```bash
-    python monitoring/generate_report.py
-    ```
-3.  Un rapport `data_drift_report.html` sera généré à la racine du projet.
-
----
-
-## 📖 Endpoints de l'API
-
-Une documentation interactive complète est disponible à l'adresse de l'API, sur le chemin `/docs` (par exemple, `http://localhost:8000/docs`).
-
-### `POST /predict`
-* **Description** : Prédit le risque de défaut pour un client.
-
-### `GET /shap_explanation/{client_id}`
-* **Description** : Fournit les données d'interprétabilité SHAP pour un client donné.
-
-### `GET /download_logs`
-* **Description** : Endpoint de maintenance pour télécharger le fichier de log des prédictions.
 
 ---
 *Projet réalisé par Thomas*
