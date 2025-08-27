@@ -191,7 +191,7 @@ with col2:
 
         # --- Section d'Analyse Comparative (Version corrigée et finale) ---
         st.divider()
-        st.header("📊 Analyse comparative du client")
+        st.header("Analyse comparative du client")
 
         if st.session_state.client_id in data['SK_ID_CURR'].values:
 
