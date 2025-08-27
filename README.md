@@ -82,6 +82,7 @@ python monitoring/generate_report.py
 ---
 
 ## 📂 Structure du Projet
+```
 .
 ├── app/ (Code de l'API FastAPI)
 │   ├── __init__.py
@@ -107,6 +108,6 @@ python monitoring/generate_report.py
 ├── README.md
 ├── requirements.txt
 └── requirements-dev.txt
-
+```
 ---
 *Projet réalisé par Thomas*
