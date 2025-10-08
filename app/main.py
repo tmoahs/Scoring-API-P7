@@ -6,6 +6,7 @@ import joblib
 import os
 import shap
 import threading
+from pathlib import Path
 
 from .preprocessing import prepare_data_for_prediction
 from .models import NewLoanRequest, PredictionResponse
@@ -16,12 +17,18 @@ app = FastAPI(
 )
 
 # --- Chargement du modèle et de l'explainer SHAP ---
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = BASE_DIR / "model" / "model.pkl"
+DATA_PATH = BASE_DIR / "data" / "feature_store.db"
+PREDICTIONS_LOG_PATH = BASE_DIR / "data" / "predictions_log.csv"
+
 try:
-    model = joblib.load('model/model.pkl')
+    # 2. UTILISER LE CHEMIN ABSOLU
+    model = joblib.load(MODEL_PATH)
     print("✅ Modèle chargé avec succès.")
 
-    # 2. Créer un explainer SHAP au démarrage
-    # Il est créé une seule fois pour être réutilisé, c'est plus efficace.
     explainer = shap.TreeExplainer(model)
     print("✅ Explainer SHAP créé avec succès.")
 
@@ -29,12 +36,6 @@ except Exception as e:
     print(f"❌ Erreur lors du chargement du modèle ou de l'explainer : {e}")
     model = None
     explainer = None
-
-# On définit le chemin vers le fichier de base de données
-DATA_PATH = "data/feature_store.db"
-
-# On définit le chemin vers le fichier de log des prédictions
-PREDICTIONS_LOG_PATH = "data/predictions_log.csv"
 
 # Un verrou pour éviter les problèmes d'écriture simultanée sur le fichier
 file_lock = threading.Lock()
