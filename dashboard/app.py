@@ -54,7 +54,7 @@ def create_gauge_chart(score):
         title={'text': "Score de Risque du Client", 'font': {'size': 20}},
         gauge={
             'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkgrey"},
-            'bar': {'color': "rgba(0,0,0,0)"},  # On s'assure que la barre principale est invisible
+            'bar': {'color': "rgba(0,0,0,0)"},
             'bgcolor': "white",
             'borderwidth': 2,
             'bordercolor': "gray",
@@ -63,8 +63,6 @@ def create_gauge_chart(score):
                 {'range': [40, 50], 'color': 'rgba(255, 193, 7, 0.7)'},
                 {'range': [50, 100], 'color': 'rgba(220, 53, 69, 0.7)'},
 
-                # --- C'est ici l'astuce : on ajoute un "step" très fin pour le trait ---
-                # On crée une petite barre noire de 2 points de large autour du score du client
                 {'range': [max(0, score_percent - 1), min(100, score_percent + 1)], 'color': 'black'}
             ],
         }
@@ -90,8 +88,6 @@ if 'prediction_faite' not in st.session_state:
     st.session_state.prediction = None
 
 # --- Création des colonnes pour la mise en page ---
-# On crée 3 colonnes. La colonne du milieu (col2) prendra 4 fois plus de place
-# que les colonnes sur les côtés (col1 et col3).
 col1, col2, col3 = st.columns([1, 4, 1])
 
 with col2:

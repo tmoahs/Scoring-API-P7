@@ -32,7 +32,6 @@ def prepare_data_for_prediction(client_id: int, new_loan_data: dict, db_path: st
     if client_features.empty:
         raise ValueError(f"Client avec SK_ID_CURR {client_id} non trouvé dans la base de données.")
 
-    # La suite de la logique ne change pas...
     new_data_df = pd.DataFrame([new_loan_data])
     for col in new_data_df.columns:
         if col in client_features.columns:

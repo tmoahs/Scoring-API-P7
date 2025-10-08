@@ -48,7 +48,6 @@ def read_root():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: NewLoanRequest):
-    # ... (le code de cette fonction ne change pas)
     if model is None:
         raise HTTPException(status_code=503, detail="Modèle non disponible.")
 
@@ -63,7 +62,6 @@ def predict(request: NewLoanRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # On fait une copie des données avant la prédiction pour les sauvegarder
     data_to_log = client_data_df.copy()
 
     client_data_df.fillna(0, inplace=True)
@@ -81,8 +79,8 @@ def predict(request: NewLoanRequest):
     with file_lock:
         data_to_log.to_csv(
             PREDICTIONS_LOG_PATH,
-            mode='a',  # 'a' pour "append" (ajouter à la fin)
-            header=not os.path.exists(PREDICTIONS_LOG_PATH),  # N'écrit l'en-tête que si le fichier n'existe pas
+            mode='a',
+            header=not os.path.exists(PREDICTIONS_LOG_PATH),
             index=False
         )
 

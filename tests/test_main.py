@@ -26,8 +26,6 @@ def test_predict_accepted():
     """
     Teste l'endpoint /predict avec les données d'un client qui devrait être accepté.
     """
-    # IMPORTANT : Remplacez ces données par les vraies données d'un client de votre jeu de test
-    # que vous savez être "accepté" (prédiction = 0).
     client_data = {
         "SK_ID_CURR": 100025,
         "AMT_CREDIT": 1132573.5,
@@ -50,7 +48,6 @@ def test_predict_missing_data():
     """
     Teste si l'API renvoie bien une erreur 422 quand une donnée cruciale est manquante.
     """
-    # On envoie des données où il manque une feature importante comme SK_ID_CURR
     incomplete_data = {
         "AMT_CREDIT": 1132573.5,
         "AMT_INCOME_TOTAL": 202500,
@@ -60,5 +57,4 @@ def test_predict_missing_data():
     }
 
     response = client.post("/predict", json=incomplete_data)
-    # FastAPI gère la validation et doit renvoyer une erreur "Unprocessable Entity"
     assert response.status_code == 422

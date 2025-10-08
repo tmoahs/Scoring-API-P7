@@ -24,8 +24,7 @@ print(f"Écriture des données dans la table '{table_name}'...")
 df.to_sql(table_name, conn, if_exists='replace', index=False)
 print("Données écrites avec succès.")
 
-# 4. CRUCIAL : Créer un index sur la colonne SK_ID_CURR
-# C'est ce qui rendra les recherches ultra-rapides.
+# 4. Créer un index sur la colonne SK_ID_CURR
 print(f"Création d'un index sur la colonne SK_ID_CURR...")
 conn.execute(f'CREATE INDEX idx_sk_id_curr ON {table_name} (SK_ID_CURR);')
 print("Index créé.")

@@ -16,7 +16,6 @@ for col in df.columns:
     if df[col].dtype == 'float64':
         df[col] = df[col].astype(np.float32)
     elif df[col].dtype == 'int64':
-        # On vérifie si on peut réduire la taille de l'entier
         if df[col].min() >= np.iinfo(np.int8).min and df[col].max() <= np.iinfo(np.int8).max:
             df[col] = df[col].astype(np.int8)
         elif df[col].min() >= np.iinfo(np.int16).min and df[col].max() <= np.iinfo(np.int16).max:
