@@ -1,0 +1,43 @@
+# Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
+name: Lancement des Tests Unitaires
+
+# Événement qui déclenche le workflow
+on:
+  # Se déclenche à chaque push sur la branche 'main' ou 'master'
+  push:
+    branches: [ "main", "master" ]
+  # Se déclenche aussi sur les Pull Requests vers ces branches
+  pull_request:
+    branches: [ "main", "master" ]
+
+# Définition des tâches (jobs) à exécuter
+jobs:
+  build:
+    # Le type de machine virtuelle sur laquelle exécuter les tests
+    runs-on: ubuntu-latest
+
+    # Les étapes du job
+    steps:
+      # Étape 1 : Récupère le code de ton dépôt
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      # Étape 2 : Configurer l'environnement Python
+      - name: Mettre en place Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # Étape 3 : Installer les dépendances
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          # On installe les dépendances de dev qui contiennent pytest et httpx
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          # On installe aussi les dépendances de production
+          pip install -r requirements.txt
+
+      # Étape 4 : Lancer les tests avec pytest
+      - name: Lancer les tests unitaires
+        run: |
+          pytest
