@@ -102,6 +102,8 @@ python monitoring/generate_report.py
 │   └── Analyse Modèle.ipynb
 ├── scripts/
 │   └── convert_to_sqlite.py # Script de préparation des données
+├── tests/
+│   └── test_main.py   
 ├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
