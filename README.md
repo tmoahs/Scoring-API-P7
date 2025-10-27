@@ -1,9 +1,14 @@
 # Projet de Scoring de Crédit : API, Monitoring & Dashboard Interactif
 
+### Objectif & Résultat Principal
+
+Optimisation d'un modèle de scoring (LGBMClassifier) atteignant un **Area Under Curve (AUC) de 0.79** sur les données de test. Le projet couvre le cycle de vie complet : de la création d'un score métier personnalisé pour minimiser les coûts, jusqu'au déploiement via une **API (FastAPI, Docker)** et un **dashboard d'interprétabilité (Streamlit, SHAP)**.
+
+---
+
 Ce projet complet de Data Science vise à développer un modèle de scoring de crédit, à le déployer via une **API RESTful conteneurisée**, à surveiller sa performance en production via un **rapport de monitoring**, et à le rendre accessible aux utilisateurs métier grâce à un **dashboard interactif**.
 
 L'objectif final est de prédire la probabilité de défaut de paiement d'un client et de fournir des outils pour interpréter cette décision de manière transparente.
-
 Ce projet a été réalisé dans le cadre de ma formation de Data Scientist.
 
 ---
